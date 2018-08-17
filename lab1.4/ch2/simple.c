@@ -1,6 +1,9 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <sys/utsname.h>
+
+
 
 /* This function is called when the module is loaded. */
 int simple_init(void)
@@ -13,6 +16,7 @@ int simple_init(void)
 /* This function is called when the module is removed. */
 void simple_exit(void) {
 	printk(KERN_INFO "Removing Module\n");
+
 }
 
 /* Macros for registering module entry and exit points. */
