@@ -1,48 +1,3 @@
-/*#include <stdio.h>
-#include <stdlib.h>
-
-int system(const char *command);
-
-int main(int argc, char *argv[])
-{
-	system("gedit"&"simple");
-	int i;
-	printf("The following arguments were passed to main(): ");
-	for(i=1; i<argc; i++){
-		//printf("%s ", argv[i]);
-		//system(argv[i]);
-	}
-	printf("\n");
-	
-	
-} */
-#include<stdio.h>
-#include<stdlib.h>
-/*int main()
-{
-	char str[256], buf[256];
-	printf("myshell-> ");
-	scanf("%s",str);
-	sprintf(buf, "/bin/sh -c %s", str);
-	system(buf);
-	return 0;
-}*/
-#include <stdio.h>
-#include <string.h>
-#define MAX_SIZE_BUFF 256
-/*int main () {
-	char command[MAX_SIZE_BUFF];
-	while(1){
-	printf("myshell-> ");
-//	scanf("%s",command);
-	fgets(command, MAX_SIZE_BUFF, stdin);
-//	strcpy( command, "gedit simple.c" );
-	system(command);
-	
-	}
-
-   return(0);
-} */
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -65,7 +20,7 @@ int main(){
 		( *ptr )[i] = command;
 		i++;
 		name[2] = command;
-		print();
+		//print();
 		pid = fork();
 		if (pid < 0) { /* error occurred */
 			fprintf(stderr, "Fork Failed\n");
