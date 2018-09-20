@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
+
 
 #define MAX_PER_LINE 10
 #define TOTAL_SIZE 4000000
@@ -18,6 +20,7 @@
 #define PATH_A "matA.dat"
 #define PATH_B "matB.dat"
 #define NUM_THREADS 2000
+#define RESULT_PATH "result.dat"
 
 /*Strcture of a Thread
  */
@@ -26,6 +29,8 @@ typedef struct
 	long ID;
 	long iteration;	
 	long fila;
+	long *matrizA;
+	long *matrizB;
 } Thread;
 
 /*Function that receives as parameter a String which is the path of the
@@ -37,8 +42,7 @@ int NUM_BUFFERS;
 long **buffers; //array the buffers para guardar operaciones
 long *result; //matriz con valor final
 pthread_mutex_t *mutexes; // Mutexes that will help to know which buffer is available
-long *globalB;
-long *globalA;
+long *result;
 
 long *readMatrix(char filename [])
 {
@@ -76,8 +80,9 @@ long *getColumn(const int column, long *matrix)
 {
 	long *returnMatrix = malloc(COLUMN_SIZE*sizeof(long));
 	const unsigned int startPos = COLUMN_SIZE * column;	/* Get initial position of column user is requesting*/	
-	for(unsigned int i=0; i<ROW_SIZE; i++)
+	for(unsigned int i=0; i<COLUMN_SIZE; i++)
 	{
+		//printf("Iteracion: %ld\n", matrix[(ROW_SIZE*i)+column]);
 		returnMatrix[i] = matrix[(ROW_SIZE*i)+column];
 		//printf("%d - %ld\n",i, returnMatrix[i]);	/* Just to see if its actually working (Y)*/
 		//printf("Columna %d\n", column);
@@ -92,12 +97,11 @@ int getLock() // Search for an available buffer, if so it returns the available 
 	unsigned char set;
 	returnVal = -1;
 	set=0;
-	for(int i=0; i<NUM_BUFFERS, 0==set; i++)
+	for(int i=0; i<NUM_BUFFERS; i++)
 	{
 		if(0==pthread_mutex_trylock(&mutexes[i]))
 		{
-			returnVal=i;
-			set++;
+			return i;
 		}
 	}
 	return returnVal;
@@ -118,7 +122,7 @@ void destroy_mutex()
 
 void freeBuffers()
 {
-	for(int i=0; i<NUM_BUFFERS; i++)
+	for(int i=0; i<ROW_SIZE; i++)
 	{
 		free(buffers[i]);
 	}
@@ -145,28 +149,42 @@ void freeALL()
 	freeBuffers();
 }
 
+int saveResultMatrix(long *result) // Saves result matrix into a new result.dat file
+{
+	FILE *fp;
+	fp = fopen(RESULT_PATH, "w");
+	for(int i=0;i<TOTAL_SIZE;i++)
+	{
+		//fprintf(fp, "%ld\n", result[i]);
+	}
+	return 0;
+}
 void *runner(void *param) 
 {
 	Thread *tid=param;
 	//printf("Hello from thread %ld - I was created in iteration %ld with file: %ld\n",tid->ID,tid->iteration, tid->fila);
-	int buffer; //available buffer
-	buffer = getLock();
-	/*while(-1 == buffer)
+	//printf("\nHello from thread %ld - I was created in iteration %ld with file: %ld\n",tid->ID,tid->iteration, tid->fila);
+	//printf("Primer valor del dot: %ld\n", dotproduct(getRow(0, tid->matrizA), getColumn(0, tid->matrizB)));
+	int bufferIndex; //available buffer index
+	bufferIndex = getLock();
+	//printf("Buffer disponible: %d\n", bufferIndex);
+	while(-1 == bufferIndex)
 	{
-		buffer = getLock();
+		bufferIndex = getLock();
 		sleep(1);
-	}*/
-	buffers[0][0] = dotproduct(getRow(0,globalA), getColumn(0, globalB));
-/*	for(int i=0;i<COLUMN_SIZE;i++) //for para columnas de B
+	}
+	/*---------------Dot product operation with threads----------------------*/
+	for(int i=0; i<ROW_SIZE; i++)
 	{
-		for(int j=0;j<ROW_SIZE; j++) //for columnas de fila pasada
-		{
-			buffers[buffer][j] = dotproduct(getRow(i,globalA), getColumn(j, globalB));
-			//printf("Columna: %d\n", j);
-			getColumn(j, globalB);
-		}
-	}*/
-	releaseLock(buffer);
+		buffers[tid->fila][i] = dotproduct(getRow(tid->fila, tid->matrizA),getColumn(i, tid->matrizB));
+		//printf("Valor de operacion: %ld\n", dotproduct(getRow(tid->fila, tid->matrizA),getColumn(i, tid->matrizB)));
+	}
+	
+	for(int i=0; i<ROW_SIZE; i++)
+	{	
+		result[(tid->fila*ROW_SIZE)+i] = buffers[tid->fila][i];
+	}
+	releaseLock(bufferIndex);
 	pthread_exit(0);
 }
 
@@ -188,11 +206,12 @@ long *multiply(long *matA, long *matB)
 	{
 		printf("Unable to set scheduling policy.\n");
 	}
-
 	for (i = 0; i < NUM_THREADS; i++){
 		threads[i].ID=rand()%(NUM_THREADS*10);
 		threads[i].iteration=i;
 		threads[i].fila = i;
+		threads[i].matrizA = matA;
+		threads[i].matrizB = matB;
 		pthread_create(&tid[i],&attr,runner,(void*)&threads[i]); 
 		//printf("I am thread %d. Created new thread (%ld) in iteration %ld...\n",num_thread,threads[i].ID,threads[i].iteration);
 		/*if (0 == (i+1)%5){
@@ -203,6 +222,7 @@ long *multiply(long *matA, long *matB)
 	for (i = 0; i < NUM_THREADS; i++){
 		pthread_join(tid[i], NULL);
 	}
+
 	return 0;
 }
 
@@ -210,6 +230,7 @@ int main(int argc, char **argv)
 {
 	/* Variables for matrixA and matrixB retrieval*/
 //	uint8_t *NUM_BUFFERS; moved to global
+	clock_t begin = clock();
 	long *matrixA, *matrixB;
 	char *stopstring;
 	NUM_BUFFERS = strtol(argv[1], &stopstring, 10);
@@ -225,24 +246,31 @@ int main(int argc, char **argv)
 
 	/************************************************** Programm **************************************************/
 
-	printf("Number of buffers wanted: %i\n", NUM_BUFFERS); //Just to try
-//	matrixA = readMatrix(PATH_A);
-//	matrixB = readMatrix(PATH_B);
-	globalB = readMatrix(PATH_B);
-	globalA = readMatrix(PATH_A);
+	//printf("Number of buffers wanted: %i\n", NUM_BUFFERS); //Just to try
+	matrixA = readMatrix(PATH_A);
+	matrixB = readMatrix(PATH_B);
+	result = malloc((long)TOTAL_SIZE*(sizeof(long)));
 	/********************************************************MUTEX*************************************/
+//	printf("Size of array of mutex: %ld\n", NUM_BUFFERS*sizeof(pthread_mutex_t));
 	mutexes = malloc((long)NUM_BUFFERS*sizeof(pthread_mutex_t)); 
-//	for(int i=0; i<(int)NUM_BUFFERS;i++)
-	for(int i=0; i<1;i++)
+
+	for(int i=0; i<NUM_BUFFERS;i++)
+	//for(int i=0; i<1;i++)
 	{
-		 if (pthread_mutex_init(&mutexes[i], NULL) != 0)
+//		pthread_mutex_init(&mutexes[i], NULL);
+		if (pthread_mutex_init(&mutexes[i], NULL) != 0)
     		{
 	        printf("\n Mutex init failed\n");
         	return 1;
 		}
 	}
-	
 	multiply(matrixA, matrixB);
+
+
+	if (0 != saveResultMatrix(result))
+	{
+		fprintf(stderr, "Unable to create new file.\n");
+	}
 	/*******------------------HOW TO USE MUTEX--------------**********/
 		
 	/*printf("Val: %d\n", pthread_mutex_trylock (&mutexes[0]));
@@ -251,16 +279,13 @@ int main(int argc, char **argv)
 	printf("Val: %d\n", pthread_mutex_trylock (&mutexes[0]));
 	printf("Hola\n");
 	/*--------------------------------END MUTEX TRAINING-----------------------*/
-	long *x;
-	x = malloc(9*sizeof(long));
-	for(int i=0;i<9;i++){
-		x[i]=i;
-		//printf("valor de x: %d\n", i);
-	}
-	free(x);
+
 	free(matrixA);
 	free(matrixB);
 	freeALL();
+	clock_t end = clock();
+	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	printf("Time is of: %f\n", time_spent);
 	return 0;
 }
 
