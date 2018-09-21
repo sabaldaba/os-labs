@@ -193,11 +193,11 @@ long *multiply(long *matA, long *matB)
 {
 	/*Threads variables*/
 	static int i, scope,num_thread;
-	Thread threads[NUM_THREADS]; /* Array of 2000 threads*/
-	pthread_t tid[NUM_THREADS]; /* Know squat about it's purpose*/
-	pthread_attr_t attr; /* Same ^*/
-	num_thread = 0; /* Dont know why is 0, Guess is just number arbitrary, wont need at the end i think*/
-	pthread_attr_init(&attr); /* Again know squat*/
+	Thread threads[NUM_THREADS]; 
+	pthread_t tid[NUM_THREADS]; 
+	pthread_attr_t attr; 
+	num_thread = 0; 
+	pthread_attr_init(&attr); 
 /************************************************+* THREADS CODE********************************************************/
 	if (0 != pthread_attr_getscope(&attr,&scope)){
 		fprintf(stderr, "Unable to get scheduling scope.\n");
