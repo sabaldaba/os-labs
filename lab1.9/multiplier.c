@@ -234,7 +234,10 @@ int main(int argc, char **argv)
 	clock_t begin = clock();
 	long *matrixA, *matrixB;
 	char *stopstring;
-	NUM_BUFFERS = strtol(argv[1], &stopstring, 10);
+	printf("Please enter how many buffers you want to use: ");
+	scanf("%i", &NUM_BUFFERS);
+	//printf("Number of buffers wanted: %i\n", NUM_BUFFERS); //Just to try
+	//NUM_BUFFERS = strtol(argv[1], &stopstring, 10);
 
 //	long **buffers; //array the buffers para guardar operaciones moved to global
 	buffers = (long**)malloc(ROW_SIZE*(sizeof(long*))); //allocate memory for double array
@@ -247,18 +250,14 @@ int main(int argc, char **argv)
 
 	/************************************************** Programm **************************************************/
 
-	//printf("Number of buffers wanted: %i\n", NUM_BUFFERS); //Just to try
 	matrixA = readMatrix(PATH_A);
 	matrixB = readMatrix(PATH_B);
 	result = malloc((long)TOTAL_SIZE*(sizeof(long)));
-	/********************************************************MUTEX*************************************/
-//	printf("Size of array of mutex: %ld\n", NUM_BUFFERS*sizeof(pthread_mutex_t));
 	mutexes = malloc((long)NUM_BUFFERS*sizeof(pthread_mutex_t)); 
 
+	
 	for(int i=0; i<NUM_BUFFERS;i++)
-	//for(int i=0; i<1;i++)
 	{
-//		pthread_mutex_init(&mutexes[i], NULL);
 		if (pthread_mutex_init(&mutexes[i], NULL) != 0)
     		{
 	        printf("\n Mutex init failed\n");
@@ -271,15 +270,6 @@ int main(int argc, char **argv)
 	{
 		fprintf(stderr, "Unable to create new file.\n");
 	}
-	/*******------------------HOW TO USE MUTEX--------------**********/
-		
-	/*printf("Val: %d\n", pthread_mutex_trylock (&mutexes[0]));
-	printf("Val: %d\n", pthread_mutex_trylock (&mutexes[0]));
-	pthread_mutex_unlock (&mutexes[0]);
-	printf("Val: %d\n", pthread_mutex_trylock (&mutexes[0]));
-	printf("Hola\n");
-	/*--------------------------------END MUTEX TRAINING-----------------------*/
-
 	free(matrixA);
 	free(matrixB);
 	freeALL();
