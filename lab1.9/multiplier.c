@@ -155,8 +155,9 @@ int saveResultMatrix(long *result) // Saves result matrix into a new result.dat 
 	fp = fopen(RESULT_PATH, "w");
 	for(int i=0;i<TOTAL_SIZE;i++)
 	{
-		//fprintf(fp, "%ld\n", result[i]);
+		fprintf(fp, "%ld\n", result[i]);
 	}
+	fclose(fp);
 	return 0;
 }
 void *runner(void *param) 
@@ -265,7 +266,6 @@ int main(int argc, char **argv)
 		}
 	}
 	multiply(matrixA, matrixB);
-
 
 	if (0 != saveResultMatrix(result))
 	{
