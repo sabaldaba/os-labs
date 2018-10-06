@@ -9,7 +9,7 @@ To compile this file use the following command:
 
 		cd: <your directory>
 
-		gcc dilema-c -o dilema.o -pthread
+		gcc dilema.c -o dilema.o -pthread
 
 		./dilema.o
 
