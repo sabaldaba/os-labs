@@ -1,0 +1,11 @@
+<p> Memory
+
+On all computer systems memory is a scarce resource. No matter how much memory is available,
+it never seems to be enough.
+Linux applications, except for a few specialized embedded applications, are
+never permitted to access physical memory directly. It might appear so to the application, but
+what the application is seeing is a carefully controlled illusion.
+Linux provides applications with a clean view of a huge directly addressable memory space.
+Additionally, it provides protection so that different applications are protected from each other.
+You allocate memory using the malloc call in the standard C library. The malloc function is guaranteed to return memory that is aligned so that it can be cast to a pointer of any type.
+
