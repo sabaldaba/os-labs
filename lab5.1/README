@@ -1,5 +1,3 @@
-<p> Memory
-
 On all computer systems memory is a scarce resource. No matter how much memory is available,
 it never seems to be enough.
 Linux applications, except for a few specialized embedded applications, are
@@ -7,5 +5,29 @@ never permitted to access physical memory directly. It might appear so to the ap
 what the application is seeing is a carefully controlled illusion.
 Linux provides applications with a clean view of a huge directly addressable memory space.
 Additionally, it provides protection so that different applications are protected from each other.
-You allocate memory using the malloc call in the standard C library. The malloc function is guaranteed to return memory that is aligned so that it can be cast to a pointer of any type.
+You allocate memory using the malloc call in the standard C library. The malloc function is guaranteed to return memory 
+that is aligned so that it can be cast to a pointer of any type.
+
+The memory1 program should only display Hello World and nothing else,
+
+The memory2 program asks to allocate somewhat more memory than is physically present 
+in the machine, so you might expect malloc to start failing somewhere a little short 
+of the actual amount of memory present, because the kernel and all the other running 
+processes are using some memory.
+
+The memory3 program has allocated, and accessed, more memory than what we have physically in our
+machine at the time of writing.
+
+In the memory4 program allocate some memory and then attempt to write past the end.
+The Linux memory management system has protected the rest of the system from this abuse of
+memory. To ensure that one badly behaved program (this one) can’t damage any other programs, Linux has terminated it.
+
+The Linux memory management system is quite capable of reliably ensuring that memory is 
+returned to the system when a program ends. Programs that use memory on a dynamic basis 
+should always release unused memory back to the malloc memory manager using the free call. 
+This enables separate blocks to be remerged and enables the malloc library to look after memory, 
+rather than have the application manage it.
+
+Calloc allocates memory that can be freed with free, it has somewhat different parameters from malloc: It allocates 
+memory for an array of structures and requires the number of elements and the size of each element as its parameters. 
 
