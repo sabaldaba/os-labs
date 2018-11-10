@@ -1,0 +1,14 @@
+Jose Antonio Lopez Cruz A01229152
+Jorge Fernando Saldaña Cabal A01350730
+Arturo Ambriz A01228798
+
+To compile this code, please use this command:
+
+    gcc main.c -o main.o
+    
+And then run it with
+
+    ./main.o addresses.txt
+
+Remember to be in the directory where you have the code as well as having the needed files to compile, which are the 
+txt and the bin files
